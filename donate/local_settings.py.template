@@ -1,0 +1,18 @@
+import os
+
+DEBUG = True
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": "dev.db",
+    }
+}
+
+ALLOWED_HOSTS = []
+
+SITE_ID = int(os.environ.get("SITE_ID", 1))
+
+# Go to https://stripe.com/ and grab your keys and put here
+STRIPE_SECRET_KEY = ""  # begins with sk_
+STRIPE_PUBLIC_KEY = ""  # beings with pk_

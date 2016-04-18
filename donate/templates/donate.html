@@ -1,0 +1,186 @@
+{% extends "site_base.html" %}
+
+{% load i18n %}
+
+{% block head_title %}Shea Silverman for Florida House of Representatives District 49{% endblock %}
+
+{% block body_class %}home{% endblock %}
+
+{% block body_base %}
+
+<div class="container">
+	
+	<h2 class="text-left">{% blocktrans %}Donate{% endblocktrans %}</h2>
+	<div class="row">
+	  <div class="col-md-6">
+			<div class="well">
+				<div class="row text-center">
+				  <div class="col-md-4"><button type="button" onclick="setDonation('1.00');" class="btn btn-primary btn-lg">1.00</button></div>
+				  <div class="col-md-4"><button type="button" onclick="setDonation('5.00');" class="btn btn-primary btn-lg">5.00</button></div>
+				  <div class="col-md-4"><button type="button" onclick="setDonation('10.00');" class="btn btn-primary btn-lg">10.00</button></div>
+				</div>
+				<p>&nbsp;</p>
+				<div class="row text-center">
+				  <div class="col-md-4"><button type="button" onclick="setDonation('25.00');" class="btn btn-primary btn-lg">25.00</button></div>
+				  <div class="col-md-4"><button type="button" onclick="setDonation('50.00');" class="btn btn-primary btn-lg">50.00</button></div>
+				  <div class="col-md-4"><button type="button" onclick="setDonation('100.00');" class="btn btn-primary btn-lg">100.00</button></div>
+				</div>
+
+				<p>&nbsp;</p>
+				<div class="row">
+					<div class="col-md-6">
+						<div class="input-group input-group-lg">
+						  <p><small>Occupation</small></p>
+						  <input type="text" id="occupation" placeholder="Occupation" class="form-control" aria-label="Occupation">
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="input-group input-group-lg">
+						  <p><small>Employer</small></p>
+						  <input type="text" id="employer" placeholder="Employer" class="form-control" aria-label="Employer" >
+						</div>
+					</div>
+				</div>
+
+
+				<p>&nbsp;</p>
+				<p class="lead">Other Amount:</p>
+				<div class="row">
+					<div class="col-md-6">
+						<div class="input-group input-group-lg">
+						  <span class="input-group-addon">$</span>
+						  <input type="number" min="1.00" id="other_amount" name="other_amount" class="form-control" aria-label="Amount (to the nearest dollar)">
+						  <!-- <span class="input-group-addon">.00</span> -->
+						</div>
+					</div>
+					<div class="col-md-6">
+						<button type="button" class="btn btn-primary btn-lg" id="donateButton" disabled>Donate</button>
+					</div>
+				</div>
+			</div>
+	  </div>
+	  <div class="col-md-6">
+	  	<div class="well">
+	  		<p class="lead">Send checks to:</p>
+	  		<p>
+	  		<address>
+	  			<strong>Shea Silverman</strong><br />
+	  			3412 Rider Place<br />
+	  			Orlando, FL 32817<br />
+	  		</address>
+
+		</div>
+	  </div>
+	</div>
+
+</div>
+
+	
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+<script src="https://checkout.stripe.com/checkout.js"></script>
+<script>
+			
+			$('#occupation, #employer', '#other_amount').on("keyup", action);
+
+			$("body").on('keyup', "#occupation", action);
+			$("body").on('keyup', "#employer", action); 
+			$("body").on('keyup', "#other_amount", action);     
+
+			$('#other_amount').on("change", action);
+
+			function action() {
+				console.log("Running");
+			    if( $('#occupation').val().length > 0 && $('#employer').val().length > 0 && $('#other_amount').val() != '' ) {
+			        $('#donateButton').prop("disabled", false);
+			    } else {
+			        $('#donateButton').prop("disabled", true);
+			    }   
+			}
+
+			var handler = StripeCheckout.configure({
+				key: 'pk_test_PPYdWyxDaiWUJI78ZqvTdgfo',
+				image: '/img/documentation/checkout/marketplace.png',
+				locale: 'auto',
+				token: function(token) {
+					// Use the token to create the charge with a server-side script.
+					// You can access the token ID with `token.id`
+					
+					var newForm = jQuery('<form>', {
+				        'action': '#',
+				        'target': '_top',
+				        'method': 'POST',
+				    }).append(jQuery('<input>', {
+				        'name': 'stripe_token',
+				        'value': token.id,
+				        'type': 'hidden'
+				    })).append(jQuery('<input>', {
+				        'name': 'occupation',
+				        'value': $('#occupation').val(),
+				        'type': 'hidden'
+				    })).append(jQuery('<input>', {
+				        'name': 'employer',
+				        'value': $('#employer').val(),
+				        'type': 'hidden'
+				    })).append(jQuery('<input>', {
+				        'name': 'csrfmiddlewaretoken',
+				        'value': getCookie('csrftoken'),
+				        'type': 'hidden'
+				    })).append(jQuery('<input>', {
+				        'name': 'amount',
+				        'value': $('#other_amount').val() * 100,
+				        'type': 'hidden'
+				    }));
+
+				    newForm.submit();
+				
+				}
+			});
+
+			$('#donateButton').on('click', function(e) {
+				// Open Checkout with further options
+				var amount = $("#other_amount").val();
+				amount = amount * 100;
+				handler.open({
+				  name: 'Shea Silverman',
+				  description: 'Campaign Donation',
+				  amount: amount,
+				  billingAddress: true,
+				  
+				});
+				e.preventDefault();
+			});
+
+
+			var setDonation = function(amount) {
+				$("#other_amount").val(amount);
+				action();
+			}
+
+			// Close Checkout on page navigation
+			$(window).on('popstate', function() {
+				handler.close();
+			});
+
+
+			function getCookie(name) {
+			    var cookieValue = null;
+			    if (document.cookie && document.cookie != '') {
+			        var cookies = document.cookie.split(';');
+			        for (var i = 0; i < cookies.length; i++) {
+			            var cookie = jQuery.trim(cookies[i]);
+			            // Does this cookie string begin with the name we want?
+			            if (cookie.substring(0, name.length + 1) == (name + '=')) {
+			                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+			                break;
+			            }
+			        }
+			    }
+			    return cookieValue;
+			}
+
+</script>
+
+{% endblock %}
